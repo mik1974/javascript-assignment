@@ -130,10 +130,37 @@ const signupPassword = document.querySelector('.signup__input--password');
 const signupConfirmPassword = document.querySelector('.signup__input--confirm-password');
 
 
-const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
 
 //adding movements on runtime
 const addMovements = function (accs) {
+
+
+
+  // if (accs.length === 0) {
+
+  //   const move = {
+  //     amount: 100,
+  //     depositor: 'Self'
+  //   };
+  //   const movements = [move]
+  //   accs.map(function (mov, index, array) {
+
+  //     return mov.movements = [...movements];
+  //   }, 0);
+  // } else {
+
+  //   const move = {
+  //     amount: 100,
+  //     depositor: 'Self'
+  //   };
+  //   const movements = [move]
+
+  //   const lastIndex = accs.length - 1
+  //   console.log(lastIndex);
+  //   accs.splice(lastIndex, 0, movements);
+  // }
+
   const move = {
     amount: 100,
     depositor: 'Self'
@@ -142,7 +169,7 @@ const addMovements = function (accs) {
   accs.map(function (mov, index, array) {
 
     return mov.movements = [...movements];
-  }, 0);
+  });
 
 
 }
@@ -182,7 +209,7 @@ btnLogin.addEventListener('click', function (e) {
 const updateUI = function (acc) {
 
   //For Display movements now.
-  displayMovements(acc);
+  displayMovements(acc, true);
 
   //for Display Balance
   calcDisplayBalance(acc);
@@ -193,10 +220,16 @@ const updateUI = function (acc) {
 }
 
 
-const displayMovements = function (account) {
+const displayMovements = function (account, sorts = false) {
 
   containerMovements.innerHTML = '';
-  account.movements.forEach((mov, i, arr) => {
+
+  //const movs = sorts ? account.movements.slice().sort((a, b) => { return a - b }) : account.movements.slice().reverse();
+  const movs = sorts ? account.movements.slice().reverse() : account.movements.slice();
+
+
+
+  movs.forEach((mov, i, arr) => {
 
     const html = `<div class="movements__row">
     <div class="movements__type movements__type--${mov.amount > 0 ? 'deposit' : 'withdrawal'}">${i + 1} - ${mov.amount > 0 ? 'deposit' : 'withdrawal'}</div>
@@ -246,7 +279,7 @@ btnTransfer.addEventListener('click', function (e) {
     return acc.login === currentAccount.login;
   });
 
-  console.log(currentAccount, "New Try")
+  //console.log(currentAccount, "New Try")
 
 
   if (transferAmount > 0 && receiverAccount && currentAccount?.balance > 0 && currentAccount?.balance >= transferAmount && currentAccount?.login !== receiverAccount.login) {
@@ -361,6 +394,44 @@ btnLogout.addEventListener('click', function (e) {
   updateUI(currentAccount);
 });
 
+//Sorting
+
+let sorted = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const str = localStorage.getItem("accounts");
+  const allAccounts = JSON.parse(str);
+
+  const pA = allAccounts.find((acc, i, arr) => {
+    return acc.login === currentAccount.login;
+  });
+
+  //console.log(currentAccount, sorted)
+
+  displayMovements(pA, !sorted);
+
+  sorted = !sorted;
+
+  if (sorted) {
+    btnSort.innerHTML = '&uparrow;' + 'SORT'
+
+  } else {
+
+    btnSort.innerHTML = '&downarrow;' + 'SORT'
+
+  }
+
+});
+//Currtent Date
+
+const date = new Date();
+
+document.querySelector('.date').textContent = date;
+
+
+
+
 //signup
 signupBlockin.addEventListener('click', function (e) {
   e.preventDefault();
@@ -384,18 +455,28 @@ signupButton.addEventListener('click', function (e) {
   const userconfirmedPassword = Number(signupConfirmPassword.value);
 
   if (userPassword === userconfirmedPassword && userEmail !== '' && userlogin !== '') {
+    accounts = JSON.parse(localStorage.getItem('accounts')) || [];
 
     const checkEmail = accounts.find((acc) => acc.email === userEmail);
     if (!checkEmail) {
+
+      const move = {
+        amount: 100,
+        depositor: 'Self'
+      };
+      const movements = [move]
 
       let objectlast = {
         "login": userlogin,
         "id": userPassword,
         "email": userEmail,
+        "movements": movements
       };
+
       accounts.push(objectlast);
 
-      addMovements(accounts);
+      console.log('these are accounts', accounts);
+      // addMovements(accounts);
 
       signupLogin.value = signupEmail.value = '';
       signupPassword.value = '';
