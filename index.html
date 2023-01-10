@@ -22,10 +22,16 @@
       <p class="try_again">Please fill all the fields and try it gain</p>
       <img src="logo.png" alt="Logo" class="logo" />
       <form class="login">
+        <select class="login__input login__select--user" required>
+          <option value="" selected>Select A User</option>
+          <option value="Ali">Ali</option>
+          <option value="Bilal">Bilal</option>
+        </select>
         <input
           type="email"
           placeholder="email"
           class="login__input login__input--user"
+          required
         />
         <!-- In practice, use type="password" -->
         <input
@@ -33,6 +39,7 @@
           placeholder="PIN"
           maxlength="4"
           class="login__input login__input--pin"
+          required
         />
         <button class="login__btn">&rarr;</button>
       </form>
@@ -50,6 +57,7 @@
         id="username"
         class="signup__input signup__input--username"
         name="username"
+        required
       /><br />
       <label for="email">Email:</label><br />
       <input
@@ -57,6 +65,7 @@
         id="email"
         class="signup__input signup__input--email"
         name="useremail"
+        required
       /><br />
       <label for="password">Password:</label><br />
       <input
@@ -64,6 +73,8 @@
         id="password"
         class="signup__input signup__input--password"
         name="password"
+        maxlength="4"
+        required
       /><br />
       <label for="confirm-password">Confirm password:</label><br />
       <input
@@ -71,6 +82,8 @@
         id="confirm-password"
         name="confirm-password"
         class="signup__input signup__input--confirm-password"
+        maxlength="4"
+        required
       /><br /><br />
       <button type="submit" class="signup__btn">Sign up</button>
     </form>
@@ -118,7 +131,12 @@
       <div class="operation operation--transfer">
         <h2>Transfer money</h2>
         <form class="form form--transfer">
-          <input type="text" class="form__input form__input--to" />
+          <!-- <input type="text" class="form__input form__input--to" /> -->
+          <select class="form__input form__input--to" required>
+            <option value="" selected>Select A User</option>
+            <option value="Ali">Ali</option>
+            <option value="Bilal">Bilal</option>
+          </select>
           <input type="number" class="form__input form__input--amount" />
           <button class="form__btn form__btn--transfer">&rarr;</button>
           <label class="form__label">Transfer to</label>

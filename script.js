@@ -128,9 +128,73 @@ const signupLogin = document.querySelector('.signup__input--username');
 const signupEmail = document.querySelector('.signup__input--email');
 const signupPassword = document.querySelector('.signup__input--password');
 const signupConfirmPassword = document.querySelector('.signup__input--confirm-password');
+const usersList = document.querySelector('.login__select--user');
+const usersList02 = document.querySelector('.form__input--to');
+
+//Signup Validation
+
+
 
 
 let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+let selectedText;
+let selectedText02;
+
+const addUsers = function () {
+  usersList.innerHTML = '';
+
+  accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+  const ulist = accounts.map((acc) => acc.login)
+  console.log(ulist);
+  ulist.forEach((acc, i, arr) => {
+
+    const optHtml = `<option value="${acc}">${acc}</option>`
+    usersList.insertAdjacentHTML("afterbegin", optHtml);
+
+
+  })
+
+  // const selectedText = usersList.value;
+
+  // console.log("Users", selectedText);
+
+}
+addUsers()
+
+const addUsers02 = function () {
+
+  usersList02.innerHTML = '';
+  accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+  const ulist02 = accounts.map((acc) => acc.login)
+  console.log(ulist02);
+  ulist02.forEach((acc, i, arr) => {
+
+    const optHtml02 = `<option value="${acc}">${acc}</option>`
+
+    usersList02.insertAdjacentHTML("afterbegin", optHtml02);
+
+  })
+
+
+}
+addUsers02()
+
+
+usersList.addEventListener('click', function () {
+
+  selectedText = usersList.value;
+  console.log("Users", selectedText);
+
+});
+
+usersList02.addEventListener('click', function () {
+
+  selectedText02 = usersList02.value;
+  console.log("Users", selectedText02);
+
+})
+
+
 
 //adding movements on runtime
 const addMovements = function (accs) {
@@ -175,11 +239,26 @@ const addMovements = function (accs) {
 }
 
 let currentAccount;
+let currentLoggedin;
 //let transfeeAccount = '';
 
+if (currentLoggedin) {
+  const allAccounts = JSON.parse(localStorage.getItem('accounts'));
+
+  containerApp.style.opacity = 1;
+  labelWelcome.textContent = `Welcome back Dear ${currentAccount.login}`;
+  updateUI(currentAccount);
+  inputLoginUsername.value = '';
+  inputLoginPin.value = '';
+  formLogin.style.display = 'none';
+  formLogout.style.display = 'block';
+  signupBlockin.style.display = 'none'
+
+}
 
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
+  const userListName = selectedText
   const userinput = inputLoginUsername.value;
   const pininput = Number(inputLoginPin.value);
   //const str = localStorage.getItem('accounts');
@@ -189,7 +268,15 @@ btnLogin.addEventListener('click', function (e) {
     return acc.email === userinput;
   });
 
-  if (currentAccount?.id == pininput) {
+  if (userinput === '') {
+    alert('Please Write Email Address');
+    inputLoginUsername.focus();
+    return false;
+  }
+  currentLoggedin = currentAccount.loggedIn = currentAccount.email;
+
+
+  if (currentAccount?.id == pininput && currentAccount?.login == userListName && currentAccount?.email == userinput) {
     containerApp.style.opacity = 1;
     labelWelcome.textContent = `Welcome back Dear ${currentAccount.login}`;
     updateUI(currentAccount);
@@ -198,11 +285,16 @@ btnLogin.addEventListener('click', function (e) {
     formLogin.style.display = 'none';
     formLogout.style.display = 'block';
     signupBlockin.style.display = 'none'
-  } else {
+  }
+
+
+
+  else {
     labelWelcome.textContent = `User Id and Password are not matched`;
     containerApp.style.opacity = 0;
-    inputLoginUsername.value = '';
-    inputLoginPin.value = '';
+    inputLoginUsername.focus();
+    // inputLoginUsername.value = '';
+    // inputLoginPin.value = '';
   }
 });
 
@@ -245,10 +337,23 @@ const displayMovements = function (account, sorts = false) {
 
 //Displaying Current Balance.
 const calcDisplayBalance = function (account) {
-  account.balance = account.movements.map((mov, i, arr) => { return mov.amount }).reduce((acc, mov, i, arr) => acc + mov, 0);
+  const str = localStorage.getItem("accounts");
+  const allAccounts = JSON.parse(str);
+  const curaccount = allAccounts.find(acc => acc.login == account.login);
+
+  curaccount.balance = curaccount.movements.map((mov, i, arr) => { return mov.amount }).reduce((acc, mov, i, arr) => acc + mov, 0);
   //account.balance = account.movements.amount.reduce((acc, mov, i, arr) => acc + mov, 0);
-  labelBalance.textContent = account.balance + '€';
-  //return account.balance
+  labelBalance.textContent = curaccount.balance + '€';
+  // return account.balance
+  // const allAcc = JSON.stringify(accounts);
+  // localStorage.setItem("accounts", allAcc);
+  //allAccounts.push(balance)
+  //return curaccount.balance;
+  // const allAcc = JSON.stringify(accounts);
+  // localStorage.setItem("accounts", allAcc);
+  console.log(curaccount, "New Current Accc")
+  // updateUI(curaccount);
+
 }
 
 //Display all Summary
@@ -266,7 +371,8 @@ const calcDisplaySummary = function (account) {
 // Transfer the Amount from current Account to Other
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
-  const transferToInput = inputTransferTo.value;
+  // const transferToInput = inputTransferTo.value;
+  const transferToInput = selectedText02;
   const transferAmount = Number(inputTransferAmount.value);
   const str = localStorage.getItem("accounts");
   const allAccounts = JSON.parse(str);
@@ -278,11 +384,12 @@ btnTransfer.addEventListener('click', function (e) {
   const pA = allAccounts.find((acc, i, arr) => {
     return acc.login === currentAccount.login;
   });
+  //updateUI(pA);
+  console.log(currentAccount, "New Try")
+  console.log(pA?.balance)
 
-  //console.log(currentAccount, "New Try")
+  if (currentAccount.balance > 0 && transferAmount > 0 && receiverAccount && currentAccount.balance >= transferAmount && currentAccount?.login !== receiverAccount.login) {
 
-
-  if (transferAmount > 0 && receiverAccount && currentAccount?.balance > 0 && currentAccount?.balance >= transferAmount && currentAccount?.login !== receiverAccount.login) {
     receiverAccount.movements.push({ amount: transferAmount, depositor: 'Received from: ' + currentAccount.login })
     //receiverAccount.movements.push(transferAmount);
     pA.movements.push({ amount: -transferAmount, depositor: 'Sent to: ' + transferToInput });
@@ -297,6 +404,7 @@ btnTransfer.addEventListener('click', function (e) {
     inputTransferAmount.value = '';
 
   }
+
 })
 
 //Remove the Account 
@@ -334,6 +442,7 @@ btnClose.addEventListener('click', function (e) {
 
     const allAcc = JSON.stringify(allAccounts);
     localStorage.setItem("accounts", allAcc);
+    addUsers()
 
     updateUI(pA);
 
@@ -444,55 +553,80 @@ signupBlockin.addEventListener('click', function (e) {
     formLogin.style.display = 'none';
     formLogout.style.display = 'none';
   }
+  signupLogin.value = '';
+  signupEmail.value = '';
+  signupPassword.value = '';
+  signupConfirmPassword.value = '';
 });
 
 signupButton.addEventListener('click', function (e) {
   e.preventDefault();
 
+
   const userlogin = signupLogin.value;
   const userEmail = signupEmail.value;
   const userPassword = Number(signupPassword.value);
   const userconfirmedPassword = Number(signupConfirmPassword.value);
+  if (userlogin === '') {
+
+    alert('Please Write the User Name');
+    //userlogin.focus();
+    return false;
+  }
+
 
   if (userPassword === userconfirmedPassword && userEmail !== '' && userlogin !== '') {
-    accounts = JSON.parse(localStorage.getItem('accounts')) || [];
 
-    const checkEmail = accounts.find((acc) => acc.email === userEmail);
-    if (!checkEmail) {
+    if (allLetter(userlogin)) {
+      if (validateEmail(userEmail)) {
 
-      const move = {
-        amount: 100,
-        depositor: 'Self'
-      };
-      const movements = [move]
+        accounts = JSON.parse(localStorage.getItem('accounts')) || [];
 
-      let objectlast = {
-        "login": userlogin,
-        "id": userPassword,
-        "email": userEmail,
-        "movements": movements
-      };
+        const checkEmail = accounts.find((acc) => acc.email === userEmail);
+        if (!checkEmail) {
 
-      accounts.push(objectlast);
+          const move = {
+            amount: 100,
+            depositor: 'Self'
+          };
+          const movements = [move]
 
-      console.log('these are accounts', accounts);
-      // addMovements(accounts);
+          let objectlast = {
+            "login": userlogin,
+            "id": userPassword,
+            "email": userEmail,
+            "movements": movements,
 
-      signupLogin.value = signupEmail.value = '';
-      signupPassword.value = '';
-      signupConfirmPassword.value = '';
-      signupArea.style.display = 'none';
-      formLogin.style.display = 'block';
-      localStorage.setItem("accounts", JSON.stringify(accounts));
-      labelWelcome.textContent = `Log in to get started`;
 
+          };
+
+          accounts.push(objectlast);
+
+          console.log('these are accounts', accounts);
+          // addMovements(accounts);
+
+
+          // signupLogin.value = signupEmail.value = '';
+          // signupPassword.value = '';
+          // signupConfirmPassword.value = '';
+          signupArea.style.display = 'none';
+          formLogin.style.display = 'block';
+          localStorage.setItem("accounts", JSON.stringify(accounts));
+          labelWelcome.textContent = `Log in to get started`;
+          addUsers()
+          addUsers02()
+        }
+
+      }
     } else {
       labelWelcome.textContent = `Sorry User is already Exists`;
 
-      signupLogin.value = '';
-      signupEmail.value = '';
-      signupPassword.value = '';
-      signupConfirmPassword.value = '';
+      // signupLogin.value = '';
+      // signupEmail.value = '';
+      // signupPassword.value = '';
+      // signupConfirmPassword.value = '';
+      addUsers()
+      addUsers02()
     }
 
   } else { labelWelcome.textContent = `Please Try Again`; }
@@ -502,8 +636,38 @@ signupButton.addEventListener('click', function (e) {
 })
 
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
+function allLetter(uname) {
+  console.log("check")
+  //var letters = /^[A-Za-z]+$/;
+  var letters = /^[a-zA-Z-,]+(\s{0,1}[a-zA-Z-, ])*$/
+  //var letters = isNaN(parseInt(uname))
+  if (uname.match(letters)) {
+    return true;
+  }
+  else {
+    alert('Username must have alphabet characters only');
+    username.focus();
+    return false;
+  }
+}
 
+function validateEmail(uemail) {
+  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  if (uemail.match(mailformat)) {
+    return true;
+  }
+  else {
+    alert("You have entered an invalid email address!");
+    signupEmail.focus();
+    return false;
+  }
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+accounts = JSON.parse(localStorage.getItem('accounts')) || []
+const bankDepositSum = accounts.map((acc) => acc.movements);
+
+console.log(bankDepositSum);
 
 /////////////////////////////////////////////////
