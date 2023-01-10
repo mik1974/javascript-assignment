@@ -301,7 +301,7 @@ btnLogin.addEventListener('click', function (e) {
 const updateUI = function (acc) {
 
   //For Display movements now.
-  displayMovements(acc, true);
+  displayMovements(acc, false);
 
   //for Display Balance
   calcDisplayBalance(acc);
