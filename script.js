@@ -134,13 +134,22 @@ const usersList02 = document.querySelector('.form__input--to');
 //Signup Validation
 
 
-
+//Global Variables
 
 let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+let logAccount = JSON.parse(localStorage.getItem('loggedIn')) || [];
 let selectedText;
 let selectedText02;
+let currentAccount;
+let currentLoggedin;
+
+currentLoggedin = logAccount;
+// if (currentLoggedin) { currentAccount = currentLoggedin }
+
+
 
 const addUsers = function () {
+
   usersList.innerHTML = '';
 
   accounts = JSON.parse(localStorage.getItem('accounts')) || [];
@@ -150,17 +159,13 @@ const addUsers = function () {
 
     const optHtml = `<option value="${acc}">${acc}</option>`
     usersList.insertAdjacentHTML("afterbegin", optHtml);
-
+    usersList.value = 'Select the User';
 
   })
-
-  // const selectedText = usersList.value;
-
-  // console.log("Users", selectedText);
-
 }
-addUsers()
+addUsers();
 
+//Creating Dropdown to show the users created by signup in the drop
 const addUsers02 = function () {
 
   usersList02.innerHTML = '';
@@ -174,9 +179,8 @@ const addUsers02 = function () {
     usersList02.insertAdjacentHTML("afterbegin", optHtml02);
 
   })
-
-
 }
+
 addUsers02()
 
 
@@ -199,32 +203,6 @@ usersList02.addEventListener('click', function () {
 //adding movements on runtime
 const addMovements = function (accs) {
 
-
-
-  // if (accs.length === 0) {
-
-  //   const move = {
-  //     amount: 100,
-  //     depositor: 'Self'
-  //   };
-  //   const movements = [move]
-  //   accs.map(function (mov, index, array) {
-
-  //     return mov.movements = [...movements];
-  //   }, 0);
-  // } else {
-
-  //   const move = {
-  //     amount: 100,
-  //     depositor: 'Self'
-  //   };
-  //   const movements = [move]
-
-  //   const lastIndex = accs.length - 1
-  //   console.log(lastIndex);
-  //   accs.splice(lastIndex, 0, movements);
-  // }
-
   const move = {
     amount: 100,
     depositor: 'Self'
@@ -234,26 +212,6 @@ const addMovements = function (accs) {
 
     return mov.movements = [...movements];
   });
-
-
-}
-
-let currentAccount;
-let currentLoggedin;
-//let transfeeAccount = '';
-
-if (currentLoggedin) {
-  const allAccounts = JSON.parse(localStorage.getItem('accounts'));
-
-  containerApp.style.opacity = 1;
-  labelWelcome.textContent = `Welcome back Dear ${currentAccount.login}`;
-  updateUI(currentAccount);
-  inputLoginUsername.value = '';
-  inputLoginPin.value = '';
-  formLogin.style.display = 'none';
-  formLogout.style.display = 'block';
-  signupBlockin.style.display = 'none'
-
 }
 
 btnLogin.addEventListener('click', function (e) {
@@ -262,19 +220,25 @@ btnLogin.addEventListener('click', function (e) {
   const userinput = inputLoginUsername.value;
   const pininput = Number(inputLoginPin.value);
   //const str = localStorage.getItem('accounts');
+
   const allAccounts = JSON.parse(localStorage.getItem('accounts'));
 
   currentAccount = allAccounts.find((acc) => {
     return acc.email === userinput;
   });
-
+  currentAccount.loggedIn = true;
   if (userinput === '') {
     alert('Please Write Email Address');
     inputLoginUsername.focus();
     return false;
   }
-  currentLoggedin = currentAccount.loggedIn = currentAccount.email;
+  currentLoggedin = allAccounts.find((acc) => {
+    return acc.email === userinput;
+  });
+  const newLogin = JSON.stringify(currentLoggedin);
+  localStorage.setItem("loggedIn", newLogin);
 
+  console.log("hello", currentLoggedin)
 
   if (currentAccount?.id == pininput && currentAccount?.login == userListName && currentAccount?.email == userinput) {
     containerApp.style.opacity = 1;
@@ -284,20 +248,16 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginPin.value = '';
     formLogin.style.display = 'none';
     formLogout.style.display = 'block';
-    signupBlockin.style.display = 'none'
+    signupBlockin.style.display = 'none';
+    inputTransferTo.value = '';
   }
-
-
-
   else {
     labelWelcome.textContent = `User Id and Password are not matched`;
     containerApp.style.opacity = 0;
     inputLoginUsername.focus();
-    // inputLoginUsername.value = '';
-    // inputLoginPin.value = '';
   }
+  inputTransferTo.value = '';
 });
-
 const updateUI = function (acc) {
 
   //For Display movements now.
@@ -310,16 +270,12 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 
 }
-
-
 const displayMovements = function (account, sorts = false) {
 
   containerMovements.innerHTML = '';
 
   //const movs = sorts ? account.movements.slice().sort((a, b) => { return a - b }) : account.movements.slice().reverse();
   const movs = sorts ? account.movements.slice().reverse() : account.movements.slice();
-
-
 
   movs.forEach((mov, i, arr) => {
 
@@ -331,8 +287,6 @@ const displayMovements = function (account, sorts = false) {
   </div>`
     containerMovements.insertAdjacentHTML("afterbegin", html);
   });
-
-
 }
 
 //Displaying Current Balance.
@@ -344,13 +298,7 @@ const calcDisplayBalance = function (account) {
   curaccount.balance = curaccount.movements.map((mov, i, arr) => { return mov.amount }).reduce((acc, mov, i, arr) => acc + mov, 0);
   //account.balance = account.movements.amount.reduce((acc, mov, i, arr) => acc + mov, 0);
   labelBalance.textContent = curaccount.balance + '€';
-  // return account.balance
-  // const allAcc = JSON.stringify(accounts);
-  // localStorage.setItem("accounts", allAcc);
-  //allAccounts.push(balance)
-  //return curaccount.balance;
-  // const allAcc = JSON.stringify(accounts);
-  // localStorage.setItem("accounts", allAcc);
+  currentAccount.balance = curaccount.balance;
   console.log(curaccount, "New Current Accc")
   // updateUI(curaccount);
 
@@ -365,7 +313,6 @@ const calcDisplaySummary = function (account) {
   //Display summery of all withdrawls
   const withdrawalVal = account.movements.filter(mov => mov.amount < 0).map((mov, i, arr) => { return mov.amount }).reduce((acc, move) => acc + move, 0);
   labelSumOut.textContent = Math.abs(Number(withdrawalVal)) + '€';
-
 }
 
 // Transfer the Amount from current Account to Other
@@ -380,7 +327,6 @@ btnTransfer.addEventListener('click', function (e) {
     return acc.login === transferToInput;
   });
 
-
   const pA = allAccounts.find((acc, i, arr) => {
     return acc.login === currentAccount.login;
   });
@@ -388,54 +334,50 @@ btnTransfer.addEventListener('click', function (e) {
   console.log(currentAccount, "New Try")
   console.log(pA?.balance)
 
-  if (currentAccount.balance > 0 && transferAmount > 0 && receiverAccount && currentAccount.balance >= transferAmount && currentAccount?.login !== receiverAccount.login) {
+  if (transferAmount > 0 && receiverAccount && currentAccount.balance >= transferAmount && currentAccount?.login !== receiverAccount.login) {
+    if (currentAccount.balance > 0) {
 
-    receiverAccount.movements.push({ amount: transferAmount, depositor: 'Received from: ' + currentAccount.login })
-    //receiverAccount.movements.push(transferAmount);
-    pA.movements.push({ amount: -transferAmount, depositor: 'Sent to: ' + transferToInput });
-    //currentAccount.movements.push(-transferAmount);
+      receiverAccount.movements.push({ amount: transferAmount, depositor: 'Received from: ' + currentAccount.login })
+      //receiverAccount.movements.push(transferAmount);
+      pA.movements.push({ amount: -transferAmount, depositor: 'Sent to: ' + transferToInput });
+      //currentAccount.movements.push(-transferAmount);
 
-    const allAcc = JSON.stringify(allAccounts);
-    localStorage.setItem("accounts", allAcc);
+      const allAcc = JSON.stringify(allAccounts);
+      localStorage.setItem("accounts", allAcc);
 
-    updateUI(pA);
+      updateUI(pA);
 
+      inputTransferTo.value = '';
+      inputTransferAmount.value = '';
+    }
+  }
+  else {
+    alert("Insufficient Balance for this transaction.")
     inputTransferTo.value = '';
     inputTransferAmount.value = '';
-
   }
-
 })
 
 //Remove the Account 
 btnClose.addEventListener('click', function (e) {
-
   e.preventDefault();
 
   const accountToRemove = inputCloseUsername.value;
   const accToremovePin = Number(inputClosePin.value);
-
   const str = localStorage.getItem("accounts");
   const allAccounts = JSON.parse(str);
-
   const closeAccount = allAccounts.find(acc => acc.login === accountToRemove);
-
-
   const pA = allAccounts.find((acc, i, arr) => {
     return acc.login === currentAccount.login;
   });
-
-  console.log(closeAccount)
 
   if (accToremovePin !== '' && accountToRemove !== '' && pA.id === accToremovePin) {
 
     const caIndex = allAccounts.findIndex(acc => acc.login === pA.login);
     allAccounts.splice(caIndex, 1);
-
     containerApp.style.opacity = 0;
     formLogin.style.display = 'block';
     formLogout.style.display = 'none';
-
 
     labelWelcome.textContent = `${pA.login}'s Account has been removed`;
     signupBlockin.style.display = 'block'
@@ -443,16 +385,13 @@ btnClose.addEventListener('click', function (e) {
     const allAcc = JSON.stringify(allAccounts);
     localStorage.setItem("accounts", allAcc);
     addUsers()
-
     updateUI(pA);
-
     inputCloseUsername.value = inputClosePin.value = '';
   } else {
 
     const allAcc = JSON.stringify(allAccounts);
     localStorage.setItem("accounts", allAcc);
     updateUI(pA);
-
     inputCloseUsername.value = inputClosePin.value = '';
   }
 
@@ -469,7 +408,6 @@ btnLoan.addEventListener('click', function (e) {
   const depositAmount = Number(inputLoanAmount.value);
   const str = localStorage.getItem("accounts");
   const allAccounts = JSON.parse(str);
-
   const pA = allAccounts.find((acc, i, arr) => {
     return acc.login === currentAccount.login;
   });
@@ -477,31 +415,16 @@ btnLoan.addEventListener('click', function (e) {
   if (depositAmount !== '' && depositAmount > 0) {
     pA.movements.push({ amount: depositAmount, depositor: 'Received Loan' });
     //currentAccount.movements.push(depositAmount);
-
     const allAcc = JSON.stringify(allAccounts);
     localStorage.setItem("accounts", allAcc);
-
-
     updateUI(pA);
     inputLoanAmount.value = '';
-
   }
   updateUI(pA);
   inputLoanAmount.value = '';
 })
 
-//logout
-btnLogout.addEventListener('click', function (e) {
-  e.preventDefault();
 
-  containerApp.style.opacity = 0;
-  formLogin.style.display = 'block';
-  formLogout.style.display = 'none';
-  signupBlockin.style.display = 'block'
-
-  labelWelcome.textContent = `Good Bye Dear ${currentAccount.login}`;
-  updateUI(currentAccount);
-});
 
 //Sorting
 
@@ -524,22 +447,14 @@ btnSort.addEventListener('click', function (e) {
 
   if (sorted) {
     btnSort.innerHTML = '&uparrow;' + 'SORT'
-
   } else {
-
     btnSort.innerHTML = '&downarrow;' + 'SORT'
-
   }
-
 });
 //Currtent Date
 
 const date = new Date();
-
 document.querySelector('.date').textContent = date;
-
-
-
 
 //signup
 signupBlockin.addEventListener('click', function (e) {
@@ -561,7 +476,6 @@ signupBlockin.addEventListener('click', function (e) {
 
 signupButton.addEventListener('click', function (e) {
   e.preventDefault();
-
 
   const userlogin = signupLogin.value;
   const userEmail = signupEmail.value;
@@ -596,19 +510,9 @@ signupButton.addEventListener('click', function (e) {
             "id": userPassword,
             "email": userEmail,
             "movements": movements,
-
-
+            "loggedIn": false
           };
-
           accounts.push(objectlast);
-
-          console.log('these are accounts', accounts);
-          // addMovements(accounts);
-
-
-          // signupLogin.value = signupEmail.value = '';
-          // signupPassword.value = '';
-          // signupConfirmPassword.value = '';
           signupArea.style.display = 'none';
           formLogin.style.display = 'block';
           localStorage.setItem("accounts", JSON.stringify(accounts));
@@ -616,23 +520,14 @@ signupButton.addEventListener('click', function (e) {
           addUsers()
           addUsers02()
         }
-
       }
     } else {
       labelWelcome.textContent = `Sorry User is already Exists`;
-
-      // signupLogin.value = '';
-      // signupEmail.value = '';
-      // signupPassword.value = '';
-      // signupConfirmPassword.value = '';
       addUsers()
       addUsers02()
     }
 
   } else { labelWelcome.textContent = `Please Try Again`; }
-
-
-
 })
 
 
@@ -663,11 +558,48 @@ function validateEmail(uemail) {
   }
 }
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-accounts = JSON.parse(localStorage.getItem('accounts')) || []
-const bankDepositSum = accounts.map((acc) => acc.movements);
 
-console.log(bankDepositSum);
+//logout
+btnLogout.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  containerApp.style.opacity = 0;
+  formLogin.style.display = 'block';
+  formLogout.style.display = 'none';
+  signupBlockin.style.display = 'block';
+  inputLoginUsername.value = '';
+  inputLoginPin.value = '';
+
+  labelWelcome.textContent = `Good Bye Dear ${currentAccount.login}`;
+  updateUI(currentAccount);
+
+  //const newAccountin = JSON.parse(localStorage.getItem('loggedIn'))
+  window.localStorage.removeItem('loggedIn');
+
+});
+
+if (currentLoggedin) {
+  //const allAccounts = JSON.parse(localStorage.getItem('accounts'));
+  console.log(currentLoggedin, "here")
+  currentAccount = currentLoggedin;
+  console.log(currentAccount.id);
+
+  containerApp.style.opacity = 1;
+  labelWelcome.textContent = `Welcome back Dear ${currentAccount.login}`;
+  updateUI(currentAccount);
+  inputLoginUsername.value = '';
+  inputLoginPin.value = '';
+  formLogin.style.display = 'none';
+  formLogout.style.display = 'block';
+  signupBlockin.style.display = 'none'
+  inputTransferTo.value = '';
+
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// accounts = JSON.parse(localStorage.getItem('accounts')) || []
+// const bankDepositSum = accounts.map((acc) => acc.movements);
+
+// console.log(bankDepositSum);
 
 /////////////////////////////////////////////////
