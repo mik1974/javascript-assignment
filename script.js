@@ -133,30 +133,38 @@ const usersList02 = document.querySelector('.form__input--to');
 
 //Signup Validation
 
-
-
-
 let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+let curlog = JSON.parse(localStorage.getItem('loggedIn')) || [];
 let selectedText;
 let selectedText02;
+
+// let currentTimeStamp = Date.parse(new Date());
+// console.log(currentTimeStamp, "cur");
+// function getTimeFromDate(timestamp) {
+//   var date = new Date(timestamp * 1000);
+//   var hours = date.getHours();
+//   var minutes = date.getMinutes();
+//   var seconds = date.getSeconds();
+
+//   var time = new Date();
+//   return time.setHours(hours, minutes, seconds);
+// }
+// //console.log(getTimeFromDate(timestamp), "jjj")
+// console.log(new Date(timestamp).toTimeString());
+
 
 const addUsers = function () {
   usersList.innerHTML = '';
 
   accounts = JSON.parse(localStorage.getItem('accounts')) || [];
   const ulist = accounts.map((acc) => acc.login)
-  console.log(ulist);
+  console.log(ulist, "mylist");
   ulist.forEach((acc, i, arr) => {
 
     const optHtml = `<option value="${acc}">${acc}</option>`
     usersList.insertAdjacentHTML("afterbegin", optHtml);
 
-
   })
-
-  // const selectedText = usersList.value;
-
-  // console.log("Users", selectedText);
 
 }
 addUsers()
@@ -175,7 +183,6 @@ const addUsers02 = function () {
 
   })
 
-
 }
 addUsers02()
 
@@ -192,70 +199,12 @@ usersList02.addEventListener('click', function () {
   selectedText02 = usersList02.value;
   console.log("Users", selectedText02);
 
-})
-
-
-
-//adding movements on runtime
-const addMovements = function (accs) {
-
-
-
-  // if (accs.length === 0) {
-
-  //   const move = {
-  //     amount: 100,
-  //     depositor: 'Self'
-  //   };
-  //   const movements = [move]
-  //   accs.map(function (mov, index, array) {
-
-  //     return mov.movements = [...movements];
-  //   }, 0);
-  // } else {
-
-  //   const move = {
-  //     amount: 100,
-  //     depositor: 'Self'
-  //   };
-  //   const movements = [move]
-
-  //   const lastIndex = accs.length - 1
-  //   console.log(lastIndex);
-  //   accs.splice(lastIndex, 0, movements);
-  // }
-
-  const move = {
-    amount: 100,
-    depositor: 'Self'
-  };
-  const movements = [move]
-  accs.map(function (mov, index, array) {
-
-    return mov.movements = [...movements];
-  });
-
-
-}
+});
 
 let currentAccount;
 let currentLoggedin;
-//let transfeeAccount = '';
 
-if (currentLoggedin) {
-  const allAccounts = JSON.parse(localStorage.getItem('accounts'));
-
-  containerApp.style.opacity = 1;
-  labelWelcome.textContent = `Welcome back Dear ${currentAccount.login}`;
-  updateUI(currentAccount);
-  inputLoginUsername.value = '';
-  inputLoginPin.value = '';
-  formLogin.style.display = 'none';
-  formLogout.style.display = 'block';
-  signupBlockin.style.display = 'none'
-
-}
-
+//LogIn Function
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
   const userListName = selectedText
@@ -264,39 +213,121 @@ btnLogin.addEventListener('click', function (e) {
   //const str = localStorage.getItem('accounts');
   const allAccounts = JSON.parse(localStorage.getItem('accounts'));
 
-  currentAccount = allAccounts.find((acc) => {
+  const curLogedin = allAccounts.find((acc) => {
     return acc.email === userinput;
   });
+  curLogedin.status = true;
 
+  curLogedin.movementsDate = Date.parse(new Date())
   if (userinput === '') {
     alert('Please Write Email Address');
     inputLoginUsername.focus();
     return false;
   }
-  currentLoggedin = currentAccount.loggedIn = currentAccount.email;
+
+  console.log(curLogedin, "New Look")
+
+  const currLogedin = JSON.stringify(curLogedin);
+  localStorage.setItem("loggedIn", currLogedin);
+  //currentLoggedin = currentAccount
+
+  currentAccount = JSON.parse(localStorage.getItem('loggedIn'));
+
 
 
   if (currentAccount?.id == pininput && currentAccount?.login == userListName && currentAccount?.email == userinput) {
-    containerApp.style.opacity = 1;
-    labelWelcome.textContent = `Welcome back Dear ${currentAccount.login}`;
-    updateUI(currentAccount);
-    inputLoginUsername.value = '';
-    inputLoginPin.value = '';
-    formLogin.style.display = 'none';
-    formLogout.style.display = 'block';
-    signupBlockin.style.display = 'none'
+    mainDisplay(currentAccount);
   }
-
-
 
   else {
     labelWelcome.textContent = `User Id and Password are not matched`;
     containerApp.style.opacity = 0;
     inputLoginUsername.focus();
-    // inputLoginUsername.value = '';
-    // inputLoginPin.value = '';
+
   }
 });
+
+const calcDaysPassed = (dateNow) => {
+  let today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth()).padStart(2, '0'); //January is 0!
+  const yyyy = today.getFullYear();
+  console.log(dateNow, 'Bilalll')
+  let lastDate = Number(new Date(dateNow));
+
+  console.log(lastDate, "lastDay")
+
+  //today = mm + ',' + dd + ',' + yyyy;
+
+  const dayspass = Number(new Date(yyyy, mm, dd) / (1000 * 60 * 60 * 24) - Number(new Date(dateNow)) / (1000 * 60 * 60 * 24));
+
+
+  console.log(Number(new Date(yyyy, mm, dd)), "bilal022")
+
+
+  console.log(dayspass, "Days Passed");
+};
+
+
+
+const displayMovements = function (account, sorts = false) {
+
+  containerMovements.innerHTML = '';
+
+  //const movs = sorts ? account.movements.slice().sort((a, b) => { return a - b }) : account.movements.slice().reverse();
+  const movs = sorts ? account.movements.slice().reverse() : account.movements.slice();
+  movs.forEach((mov, i, arr) => {
+    //const timestamp = Date.now();
+    const ctime = new Date(mov.movementsDate);
+    const cuuTime = `${ctime.getFullYear()}-${ctime.getMonth() + 1}-${ctime.getDate()}`;
+    console.log(cuuTime, "ddd");
+    calcDaysPassed(cuuTime);
+
+    console.log(cuuTime, "ctime")
+
+
+    const html = `<div class="movements__row">
+    <div class="movements__type movements__type--${mov.amount > 0 ? 'deposit' : 'withdrawal'}">${i + 1} - ${mov.amount > 0 ? 'deposit' : 'withdrawal'}</div>
+    <div class="movements__date">${mov.depositor} on ${ctime.getDate()}/${ctime.getMonth() + 1}/${ctime.getFullYear()}</div> 
+    <div class="movements__date"></div>          
+      <div class="movements__value">${Math.abs(mov.amount)} €</div>
+  </div>`
+    containerMovements.insertAdjacentHTML("afterbegin", html);
+  });
+}
+
+//Displaying Current Balance.
+const calcDisplayBalance = function (account) {
+
+
+  account.balance = account.movements.map((mov, i, arr) => { return mov.amount }).reduce((acc, mov, i, arr) => acc + mov, 0);
+  //account.balance = account.movements.amount.reduce((acc, mov, i, arr) => acc + mov, 0);
+  labelBalance.textContent = account.balance + '€';
+
+  console.log(account.balance, "Ye bjhi")
+
+
+  const curLogedin = JSON.parse(localStorage.getItem('loggedIn'));
+  curLogedin.balance = account.balance
+
+  const allAcc = JSON.stringify(curLogedin);
+  localStorage.setItem("loggedIn", allAcc);
+
+
+}
+
+//Display all Summary
+const calcDisplaySummary = function (account) {
+
+  //Display summary of all deposit
+  const depositVal = account.movements.filter(mov => mov.amount > 0).map((mov, i, arr) => { return mov.amount }).reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = depositVal + '€';
+
+  //Display summery of all withdrawls
+  const withdrawalVal = account.movements.filter(mov => mov.amount < 0).map((mov, i, arr) => { return mov.amount }).reduce((acc, move) => acc + move, 0);
+  labelSumOut.textContent = Math.abs(Number(withdrawalVal)) + '€';
+
+}
 
 const updateUI = function (acc) {
 
@@ -308,69 +339,38 @@ const updateUI = function (acc) {
 
   //for Display Summary
   calcDisplaySummary(acc);
+}
+const mainDisplay = function (ca) {
+  containerApp.style.opacity = 1;
+  labelWelcome.textContent = `Welcome back Dear ${ca.login}`;
+  updateUI(ca);
+  inputLoginUsername.value = '';
+  inputLoginPin.value = '';
+  formLogin.style.display = 'none';
+  formLogout.style.display = 'block';
+  signupBlockin.style.display = 'none'
 
+}
+if (curlog.status) {
+  console.log(curlog, "after refresh")
+  mainDisplay(curlog);
 }
 
 
-const displayMovements = function (account, sorts = false) {
-
-  containerMovements.innerHTML = '';
-
-  //const movs = sorts ? account.movements.slice().sort((a, b) => { return a - b }) : account.movements.slice().reverse();
-  const movs = sorts ? account.movements.slice().reverse() : account.movements.slice();
 
 
 
-  movs.forEach((mov, i, arr) => {
-
-    const html = `<div class="movements__row">
-    <div class="movements__type movements__type--${mov.amount > 0 ? 'deposit' : 'withdrawal'}">${i + 1} - ${mov.amount > 0 ? 'deposit' : 'withdrawal'}</div>
-    <div class="movements__date">${mov.depositor}</div>  
-         
-      <div class="movements__value">${Math.abs(mov.amount)} €</div>
-  </div>`
-    containerMovements.insertAdjacentHTML("afterbegin", html);
-  });
 
 
-}
 
-//Displaying Current Balance.
-const calcDisplayBalance = function (account) {
-  const str = localStorage.getItem("accounts");
-  const allAccounts = JSON.parse(str);
-  const curaccount = allAccounts.find(acc => acc.login == account.login);
 
-  curaccount.balance = curaccount.movements.map((mov, i, arr) => { return mov.amount }).reduce((acc, mov, i, arr) => acc + mov, 0);
-  //account.balance = account.movements.amount.reduce((acc, mov, i, arr) => acc + mov, 0);
-  labelBalance.textContent = curaccount.balance + '€';
-  // return account.balance
-  // const allAcc = JSON.stringify(accounts);
-  // localStorage.setItem("accounts", allAcc);
-  //allAccounts.push(balance)
-  //return curaccount.balance;
-  // const allAcc = JSON.stringify(accounts);
-  // localStorage.setItem("accounts", allAcc);
-  console.log(curaccount, "New Current Accc")
-  // updateUI(curaccount);
 
-}
 
-//Display all Summary
-const calcDisplaySummary = function (account) {
-  //Display summary of all deposit
-  const depositVal = account.movements.filter(mov => mov.amount > 0).map((mov, i, arr) => { return mov.amount }).reduce((acc, mov) => acc + mov, 0);
-  labelSumIn.textContent = depositVal + '€';
-
-  //Display summery of all withdrawls
-  const withdrawalVal = account.movements.filter(mov => mov.amount < 0).map((mov, i, arr) => { return mov.amount }).reduce((acc, move) => acc + move, 0);
-  labelSumOut.textContent = Math.abs(Number(withdrawalVal)) + '€';
-
-}
 
 // Transfer the Amount from current Account to Other
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
+
   // const transferToInput = inputTransferTo.value;
   const transferToInput = selectedText02;
   const transferAmount = Number(inputTransferAmount.value);
@@ -380,23 +380,26 @@ btnTransfer.addEventListener('click', function (e) {
     return acc.login === transferToInput;
   });
 
+  const curClient = JSON.parse(localStorage.getItem('loggedIn'));
 
-  const pA = allAccounts.find((acc, i, arr) => {
-    return acc.login === currentAccount.login;
-  });
-  //updateUI(pA);
-  console.log(currentAccount, "New Try")
-  console.log(pA?.balance)
+  const pA = curClient;
+  console.log(pA, "New Try");
+  console.log(pA.balance);
+  // pA.movementsDate = Date.now();
 
-  if (currentAccount.balance > 0 && transferAmount > 0 && receiverAccount && currentAccount.balance >= transferAmount && currentAccount?.login !== receiverAccount.login) {
+  if (pA.balance > 0 && transferAmount > 0 && receiverAccount && pA.balance >= transferAmount && pA?.login !== receiverAccount.login) {
 
-    receiverAccount.movements.push({ amount: transferAmount, depositor: 'Received from: ' + currentAccount.login })
+    receiverAccount.movements.push({ amount: transferAmount, depositor: 'Received from: ' + pA.login, movementsDate: pA.movementsDate });
+
     //receiverAccount.movements.push(transferAmount);
-    pA.movements.push({ amount: -transferAmount, depositor: 'Sent to: ' + transferToInput });
+    pA.movements.push({ amount: -transferAmount, depositor: 'Sent to: ' + transferToInput, movementsDate: pA.movementsDate });
     //currentAccount.movements.push(-transferAmount);
 
     const allAcc = JSON.stringify(allAccounts);
     localStorage.setItem("accounts", allAcc);
+
+    const currClientAfter = JSON.stringify(pA);
+    localStorage.setItem("loggedIn", currClientAfter);
 
     updateUI(pA);
 
@@ -404,6 +407,7 @@ btnTransfer.addEventListener('click', function (e) {
     inputTransferAmount.value = '';
 
   }
+  else { alert("Balance is in sufficiant") }
 
 })
 
@@ -431,7 +435,7 @@ btnClose.addEventListener('click', function (e) {
 
     const caIndex = allAccounts.findIndex(acc => acc.login === pA.login);
     allAccounts.splice(caIndex, 1);
-
+    window.localStorage.removeItem("loggedIn");
     containerApp.style.opacity = 0;
     formLogin.style.display = 'block';
     formLogout.style.display = 'none';
@@ -444,7 +448,7 @@ btnClose.addEventListener('click', function (e) {
     localStorage.setItem("accounts", allAcc);
     addUsers()
 
-    updateUI(pA);
+    // updateUI(pA);
 
     inputCloseUsername.value = inputClosePin.value = '';
   } else {
@@ -467,22 +471,21 @@ btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
 
   const depositAmount = Number(inputLoanAmount.value);
-  const str = localStorage.getItem("accounts");
-  const allAccounts = JSON.parse(str);
+  const str = localStorage.getItem("loggedIn");
+  const ppA = JSON.parse(str);
 
-  const pA = allAccounts.find((acc, i, arr) => {
-    return acc.login === currentAccount.login;
-  });
+  ppA.movementsDate = new Date();
+
 
   if (depositAmount !== '' && depositAmount > 0) {
-    pA.movements.push({ amount: depositAmount, depositor: 'Received Loan' });
+    ppA.movements.push({ amount: depositAmount, depositor: 'Received Loan', movementsDate: ppA.movementsDate });
     //currentAccount.movements.push(depositAmount);
 
-    const allAcc = JSON.stringify(allAccounts);
-    localStorage.setItem("accounts", allAcc);
+    const allAcc = JSON.stringify(ppA);
+    localStorage.setItem("loggedIn", allAcc);
 
 
-    updateUI(pA);
+    updateUI(ppA);
     inputLoanAmount.value = '';
 
   }
@@ -494,13 +497,26 @@ btnLoan.addEventListener('click', function (e) {
 btnLogout.addEventListener('click', function (e) {
   e.preventDefault();
 
+  const curLogedin = JSON.parse(localStorage.getItem('loggedIn'));
+  console.log(curLogedin);
+
+  curLogedin.status = false;
+  const allAccs = JSON.parse(localStorage.getItem('accounts'));
+  console.log(allAccs)
+
+  const cIndex = allAccs.findIndex(acc => acc.login == curLogedin.login);
+
+  console.log(cIndex, "IndexNum");
+
+  const newRec = allAccs.splice(cIndex, 1, curLogedin);
+  console.log(allAccs, "updated Recordss");
+  localStorage.setItem("accounts", JSON.stringify(allAccs));
   containerApp.style.opacity = 0;
   formLogin.style.display = 'block';
   formLogout.style.display = 'none';
-  signupBlockin.style.display = 'block'
-
-  labelWelcome.textContent = `Good Bye Dear ${currentAccount.login}`;
-  updateUI(currentAccount);
+  signupBlockin.style.display = 'block';
+  labelWelcome.textContent = `Good Bye Dear ${curLogedin.login}`;
+  window.localStorage.removeItem("loggedIn");
 });
 
 //Sorting
@@ -509,16 +525,14 @@ let sorted = false;
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
 
-  const str = localStorage.getItem("accounts");
-  const allAccounts = JSON.parse(str);
+  const str = localStorage.getItem("loggedIn");
+  const currentClient = JSON.parse(str);
 
-  const pA = allAccounts.find((acc, i, arr) => {
-    return acc.login === currentAccount.login;
-  });
 
-  //console.log(currentAccount, sorted)
 
-  displayMovements(pA, !sorted);
+
+
+  displayMovements(currentClient, !sorted);
 
   sorted = !sorted;
 
@@ -534,9 +548,14 @@ btnSort.addEventListener('click', function (e) {
 });
 //Currtent Date
 
-const date = new Date();
+const now = new Date();
+const day = `${now.getDate()}`.padStart(2, '0');
+const month = `${now.getMonth()}`.padStart(1, '0');
+const year = now.getFullYear();
+const hours = `${now.getHours()}`.padStart(2, 0);
+const min = `${now.getMinutes()}`.padStart(2, 0);
 
-document.querySelector('.date').textContent = date;
+document.querySelector('.date').textContent = `${day}/${month + 1}/${year}, ${hours}:${min}`;
 
 
 
@@ -583,32 +602,28 @@ signupButton.addEventListener('click', function (e) {
         accounts = JSON.parse(localStorage.getItem('accounts')) || [];
 
         const checkEmail = accounts.find((acc) => acc.email === userEmail);
-        if (!checkEmail) {
 
+        if (!checkEmail) {
           const move = {
             amount: 100,
-            depositor: 'Self'
+            depositor: 'Self',
+            movementsDate: new Date(Date.now())
           };
           const movements = [move]
 
           let objectlast = {
-            "login": userlogin,
-            "id": userPassword,
-            "email": userEmail,
-            "movements": movements,
-
-
+            login: userlogin,
+            id: userPassword,
+            email: userEmail,
+            movements: movements,
+            status: false,
           };
 
           accounts.push(objectlast);
 
           console.log('these are accounts', accounts);
-          // addMovements(accounts);
 
 
-          // signupLogin.value = signupEmail.value = '';
-          // signupPassword.value = '';
-          // signupConfirmPassword.value = '';
           signupArea.style.display = 'none';
           formLogin.style.display = 'block';
           localStorage.setItem("accounts", JSON.stringify(accounts));
@@ -621,18 +636,12 @@ signupButton.addEventListener('click', function (e) {
     } else {
       labelWelcome.textContent = `Sorry User is already Exists`;
 
-      // signupLogin.value = '';
-      // signupEmail.value = '';
-      // signupPassword.value = '';
-      // signupConfirmPassword.value = '';
+
       addUsers()
       addUsers02()
     }
 
   } else { labelWelcome.textContent = `Please Try Again`; }
-
-
-
 })
 
 
@@ -663,11 +672,33 @@ function validateEmail(uemail) {
   }
 }
 
+
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-accounts = JSON.parse(localStorage.getItem('accounts')) || []
-const bankDepositSum = accounts.map((acc) => acc.movements);
+const aallAccounts = JSON.parse(localStorage.getItem('accounts')) || []
+const bankDepositSum = accounts.map((acc) => acc.movements).flat();
 
 console.log(bankDepositSum);
+const bankTotalDepositAmount = bankDepositSum.map((acc) => acc.amount).reduce((acc, am) => acc + am, 0);
+console.log(bankTotalDepositAmount);
+
+const moveabove100 = bankDepositSum.map((acc) => acc.amount).reduce((acc, curr) => curr >= 100 ? ++acc : acc, 0);
+
+console.log(moveabove100);
+
+const { deposits, withdrawls } = bankDepositSum.map((acc) => acc.amount).reduce((acc, cur) => {
+
+  // cur > 0 ? (acc.deposits += cur) : (acc.withdrawls += cur)
+
+  acc[cur > 0 ? 'deposits' : 'withdrawls'] += cur
+
+  return acc;
+
+}, { deposits: 0, withdrawls: 0 });
+
+console.log("deposits :", deposits, "widthdrawls :", withdrawls);
+
+// console.log(deposits });
 
 /////////////////////////////////////////////////
