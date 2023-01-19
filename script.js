@@ -204,6 +204,80 @@ usersList02.addEventListener('click', function () {
 let currentAccount;
 let currentLoggedin;
 
+
+const logout = function () {
+  // e.preventDefault();
+
+  const curLogedin = JSON.parse(localStorage.getItem('loggedIn'));
+  console.log(curLogedin);
+
+  curLogedin.status = false;
+  const allAccs = JSON.parse(localStorage.getItem('accounts'));
+  console.log(allAccs)
+
+  const cIndex = allAccs.findIndex(acc => acc.login == curLogedin.login);
+
+  console.log(cIndex, "IndexNum");
+
+  const newRec = allAccs.splice(cIndex, 1, curLogedin);
+  console.log(allAccs, "updated Recordss");
+  localStorage.setItem("accounts", JSON.stringify(allAccs));
+  containerApp.style.opacity = 0;
+  formLogin.style.display = 'block';
+  formLogout.style.display = 'none';
+  signupBlockin.style.display = 'block';
+  labelWelcome.textContent = `Good Bye Dear ${curLogedin.login}`;
+  window.localStorage.removeItem("loggedIn");
+}
+
+
+const setLogTimeout = function () {
+  let time = 120;
+
+  const tick = function () {
+    let min = String(Math.trunc(time / 60)).padStart(2, 0);
+    let sec = String(time % 60).padStart(2, 0);
+
+    labelTimer.textContent = `${min} : ${sec}`;
+
+
+
+    if (time === 0) {
+      clearInterval(timer);
+
+      logout();
+
+    }
+
+    time--;
+
+  }
+
+  tick();
+
+  const timer = setInterval(tick, 1000);
+  return timer;
+  // timer();
+
+}
+
+const setCurrentTime = function () {
+  const now = new Date();
+  const day = `${now.getDate()}`.padStart(2, '0');
+  const month = `${now.getMonth()}`.padStart(1, '0');
+  const year = now.getFullYear();
+  const hh = `${now.getHours()}`.padStart(2, 0);
+  const min = `${now.getMinutes()}`.padStart(2, 0);
+  const sec = `${now.getSeconds()}`.padStart(2, 0);
+  
+
+  document.querySelector('.date').textContent = `${day}/${month + 1}/${year}, ${hh} : ${min} : ${sec}`
+
+
+}
+
+
+
 //LogIn Function
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
@@ -225,7 +299,7 @@ btnLogin.addEventListener('click', function (e) {
     return false;
   }
 
-  console.log(curLogedin, "New Look")
+
 
   const currLogedin = JSON.stringify(curLogedin);
   localStorage.setItem("loggedIn", currLogedin);
@@ -247,26 +321,26 @@ btnLogin.addEventListener('click', function (e) {
   }
 });
 
-const calcDaysPassed = (dateNow) => {
-  let today = new Date();
-  const dd = String(today.getDate()).padStart(2, '0');
-  const mm = String(today.getMonth()).padStart(2, '0'); //January is 0!
-  const yyyy = today.getFullYear();
-  console.log(dateNow, 'Bilalll')
-  let lastDate = Number(new Date(dateNow));
+// const calcDaysPassed = (dateNow) => {
+//   let today = new Date();
+//   const dd = String(today.getDate()).padStart(2, '0');
+//   const mm = String(today.getMonth()).padStart(2, '0'); //January is 0!
+//   const yyyy = today.getFullYear();
+//   console.log(dateNow, 'Bilalll')
+//   let lastDate = Number(new Date(dateNow));
 
-  console.log(lastDate, "lastDay")
+//   console.log(lastDate, "lastDay")
 
-  //today = mm + ',' + dd + ',' + yyyy;
+//   //today = mm + ',' + dd + ',' + yyyy;
 
-  const dayspass = Number(new Date(yyyy, mm, dd) / (1000 * 60 * 60 * 24) - Number(new Date(dateNow)) / (1000 * 60 * 60 * 24));
-
-
-  console.log(Number(new Date(yyyy, mm, dd)), "bilal022")
+//   const dayspass = Number(new Date(yyyy, mm, dd) / (1000 * 60 * 60 * 24) - Number(new Date(dateNow)) / (1000 * 60 * 60 * 24));
 
 
-  console.log(dayspass, "Days Passed");
-};
+//   console.log(Number(new Date(yyyy, mm, dd)), "bilal022")
+
+
+//   console.log(dayspass, "Days Passed");
+// };
 
 
 
@@ -280,15 +354,27 @@ const displayMovements = function (account, sorts = false) {
     //const timestamp = Date.now();
     const ctime = new Date(mov.movementsDate);
     const cuuTime = `${ctime.getFullYear()}-${ctime.getMonth() + 1}-${ctime.getDate()}`;
+
+    const now = new Date();
     console.log(cuuTime, "ddd");
-    calcDaysPassed(cuuTime);
-
+    // calcDaysPassed(cuuTime);
+    let datephrase = 0;
+    let datequote;
     console.log(cuuTime, "ctime")
-
+    if (now.getDate() >= ctime.getDate()) {
+      datephrase = now.getDate() - ctime.getDate();
+      if (datephrase === 0) { datequote = `today` }
+      if (datephrase === 1) { datequote = `yesterday` }
+      if (datephrase === 2) { datequote = `${datephrase} days ago` }
+      if (datephrase === 3) { datequote = `${datephrase} days ago` }
+      if (datephrase === 4) { datephrase = `${datephrase} days ago` }
+      if (datephrase === 4) { datequote = `${datephrase} days ago` }
+    }
 
     const html = `<div class="movements__row">
     <div class="movements__type movements__type--${mov.amount > 0 ? 'deposit' : 'withdrawal'}">${i + 1} - ${mov.amount > 0 ? 'deposit' : 'withdrawal'}</div>
-    <div class="movements__date">${mov.depositor} on ${ctime.getDate()}/${ctime.getMonth() + 1}/${ctime.getFullYear()}</div> 
+   
+    <div class="movements__date">${mov.depositor}  ${datequote} on ${ctime.getDate()}/${ctime.getMonth() + 1}/${ctime.getFullYear()}</div> 
     <div class="movements__date"></div>          
       <div class="movements__value">${Math.abs(mov.amount)} €</div>
   </div>`
@@ -343,6 +429,7 @@ const updateUI = function (acc) {
 const mainDisplay = function (ca) {
   containerApp.style.opacity = 1;
   labelWelcome.textContent = `Welcome back Dear ${ca.login}`;
+  setLogTimeout();
   updateUI(ca);
   inputLoginUsername.value = '';
   inputLoginPin.value = '';
@@ -351,6 +438,8 @@ const mainDisplay = function (ca) {
   signupBlockin.style.display = 'none'
 
 }
+
+//check either user is alredy logged in.
 if (curlog.status) {
   console.log(curlog, "after refresh")
   mainDisplay(curlog);
@@ -494,30 +583,14 @@ btnLoan.addEventListener('click', function (e) {
 })
 
 //logout
-btnLogout.addEventListener('click', function (e) {
-  e.preventDefault();
 
-  const curLogedin = JSON.parse(localStorage.getItem('loggedIn'));
-  console.log(curLogedin);
 
-  curLogedin.status = false;
-  const allAccs = JSON.parse(localStorage.getItem('accounts'));
-  console.log(allAccs)
+//logout Function
+btnLogout.addEventListener('click', logout);
 
-  const cIndex = allAccs.findIndex(acc => acc.login == curLogedin.login);
 
-  console.log(cIndex, "IndexNum");
 
-  const newRec = allAccs.splice(cIndex, 1, curLogedin);
-  console.log(allAccs, "updated Recordss");
-  localStorage.setItem("accounts", JSON.stringify(allAccs));
-  containerApp.style.opacity = 0;
-  formLogin.style.display = 'block';
-  formLogout.style.display = 'none';
-  signupBlockin.style.display = 'block';
-  labelWelcome.textContent = `Good Bye Dear ${curLogedin.login}`;
-  window.localStorage.removeItem("loggedIn");
-});
+
 
 //Sorting
 
@@ -548,14 +621,10 @@ btnSort.addEventListener('click', function (e) {
 });
 //Currtent Date
 
-const now = new Date();
-const day = `${now.getDate()}`.padStart(2, '0');
-const month = `${now.getMonth()}`.padStart(1, '0');
-const year = now.getFullYear();
-const hours = `${now.getHours()}`.padStart(2, 0);
-const min = `${now.getMinutes()}`.padStart(2, 0);
 
-document.querySelector('.date').textContent = `${day}/${month + 1}/${year}, ${hours}:${min}`;
+setInterval(setCurrentTime, 1000);
+// document.querySelector('.date').textContent = `${day}/${month + 1}/${year}, ${hours}:${min}`;
+
 
 
 
